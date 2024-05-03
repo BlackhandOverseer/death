@@ -1,0 +1,45 @@
+local helper = {}
+
+local function createEmbed(options)
+	local embed = {
+		title = options.title or "",
+		description = options.description or "",
+		color = options.color or 0,
+		thumbnail = {
+			url = options.thumbnail or ""
+		},
+		image = {
+			url = options.image or ""
+		},
+		author = {
+			name = options.author or "",
+			icon_url = options.authorIcon or "",
+		},
+		username = options.username or "",
+		avatar_url = options.avatar_url or "",
+		fields = options.fields or {}
+	}
+
+	if options.inline then
+		for _, field in ipairs(embed.fields) do
+			field.inline = true
+		end
+	end
+
+	return embed
+end
+
+function helper.send(webhookUrl, content, options)
+	local data = {
+		content = content or "",
+		username = options.username or "",
+		avatar_url = options.avatar_url or "",
+		embeds = {
+			createEmbed(options or {})
+		}
+	}
+
+	game:GetService("HttpService"):PostAsync(webhookUrl, game:GetService("HttpService"):JSONEncode(data))
+end
+
+return helper
